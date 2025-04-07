@@ -132,16 +132,24 @@ export default function Home() {
 
           {/* Duration */}
           <input
-            className="p-2 border rounded text-black w-full"
-            type="text"
-            value={duration}
-            onChange={(e) => {
-              setDuration(e.target.value);
-              if (durationError) setDurationError('');
-            }}
-            
-            placeholder="Duration (e.g. 45m or 1.5h)"
-          />
+  className={`p-2 border rounded w-full text-black ${
+    durationError ? 'border-red-500' : 'border-gray-300'
+  }`}
+  type="text"
+  value={duration}
+  onChange={(e) => {
+    const value = e.target.value;
+    setDuration(value);
+
+    // Only show error if there's a value AND it's invalid
+    if (value.trim() && !isValidDuration(value)) {
+      setDurationError('Please enter a valid duration (e.g., 45m, 1h, 1.5h, 2h 30m)');
+    } else {
+      setDurationError('');
+    }
+  }}
+  placeholder="Duration (e.g. 45m or 1.5h)"
+/>       
 
 {/* Duration Error Message */}
 {durationError && (
