@@ -11,7 +11,7 @@ type Task = {
   id: number;
   text: string;
   dueDate: string;
-  duration: string; // e.g. "45 minutes"
+  duration: string;
   completed: boolean;
 };
 
@@ -29,32 +29,7 @@ export default function Home() {
   const [dueDate, setDueDate] = useState("");
   const [duration, setDuration] = useState("");
   const [durationError, setDurationError] = useState("");
-  const [aiLoading, setAiLoading] = useState(false);
-
-const generateTaskFromPrompt = async () => {
-  const userPrompt = prompt("What do you want to do?");
-  if (!userPrompt) return;
-
-  setAiLoading(true);
-  try {
-    const res = await fetch('/api/generate-task', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: userPrompt }),
-    });
-
-    const data = await res.json();
-
-    if (data.result) {
-      setInput(data.result); // or you could parse into text/duration/date
-    }
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setAiLoading(false);
-  }
-};
-
+  const [editingField, setEditingField] = useState<{ id: number; field: keyof Task; originalValue: string } | null>(null);
 
   ///////////////////////////////////////////////////////////
   // 🔸 Effect: Load tasks from localStorage on mount
@@ -76,18 +51,35 @@ const generateTaskFromPrompt = async () => {
   }, [tasks]);
 
   ///////////////////////////////////////////////////////////
-  // 🔸 Handlers: Add / Toggle / Delete Tasks
+  // 🔸 Helpers
   ///////////////////////////////////////////////////////////
 
-  // Validate duration before adding task
   const isValidDuration = (input: string): boolean => {
     const trimmed = input.trim().toLowerCase();
-
-    // Match patterns like: 30m, 1h, 1.5h, 2h 30m
-    const regex = /^(\d+(\.\d+)?h)?\s*(\d+m)?$/;
-
+    const regex = /^((\d+(\.\d+)?h)?\s*(\d+m)?)$/;
     return regex.test(trimmed) && trimmed.length > 0;
   };
+
+  const updateTask = (id: number, updates: Partial<Task>) => {
+    setTasks((prev) =>
+      prev.map((task) => (task.id === id ? { ...task, ...updates } : task))
+    );
+  };
+
+  const handleKeyEvents = (e: React.KeyboardEvent<HTMLInputElement>, task: Task, field: keyof Task) => {
+    if (e.key === "Enter") {
+      (e.target as HTMLInputElement).blur();
+    } else if (e.key === "Escape") {
+      if (editingField) {
+        updateTask(task.id, { [field]: editingField.originalValue });
+      }
+      setEditingField(null);
+    }
+  };
+
+  ///////////////////////////////////////////////////////////
+  // 🔸 Handlers: Add / Toggle / Delete Tasks
+  ///////////////////////////////////////////////////////////
 
   const addTask = () => {
     if (!input.trim()) return;
@@ -98,7 +90,7 @@ const generateTaskFromPrompt = async () => {
       );
       return;
     } else {
-      setDurationError(""); // clear error on valid entry
+      setDurationError("");
     }
 
     const newTask: Task = {
@@ -115,7 +107,6 @@ const generateTaskFromPrompt = async () => {
     setDuration("");
   };
 
-  // Toggle task complete/incomplete
   const toggleTask = (id: number) => {
     setTasks(
       tasks.map((task) =>
@@ -124,7 +115,6 @@ const generateTaskFromPrompt = async () => {
     );
   };
 
-  // Delete task
   const deleteTask = (id: number) => {
     setTasks(tasks.filter((task) => task.id !== id));
   };
@@ -147,14 +137,12 @@ const generateTaskFromPrompt = async () => {
           setTasks((prev) => [...newTasks, ...prev]);
         }}
       />
-  
+
       <main className="w-full md:w-2/3 p-4">
         <h1 className="text-3xl font-bold mb-4">📝 Task List</h1>
 
         {/* 🧾 Task Input Form */}
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto_auto] w-full gap-2 mb-4">
-          
-          {/* Task Description */}
           <input
             className="p-2 border rounded text-black w-full"
             type="text"
@@ -163,16 +151,12 @@ const generateTaskFromPrompt = async () => {
             placeholder="Add a task..."
             onKeyDown={(e) => e.key === "Enter" && addTask()}
           />
-
-          {/* Due Date */}
           <input
             className="p-2 border rounded text-black w-full"
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
           />
-
-          {/* Duration */}
           <input
             className={`p-2 border rounded w-full text-black ${
               durationError ? "border-red-500" : "border-gray-300"
@@ -182,8 +166,6 @@ const generateTaskFromPrompt = async () => {
             onChange={(e) => {
               const value = e.target.value;
               setDuration(value);
-
-              // Only show error if there's a value AND it's invalid
               if (value.trim() && !isValidDuration(value)) {
                 setDurationError(
                   "Please enter a valid duration (e.g., 45m, 1h, 1.5h, 2h 30m)"
@@ -194,15 +176,11 @@ const generateTaskFromPrompt = async () => {
             }}
             placeholder="Duration (e.g. 45m or 1.5h)"
           />
-
-          {/* Duration Error Message */}
           {durationError && (
             <p className="text-sm text-red-500 col-span-full">
               {durationError}
             </p>
           )}
-
-          {/* Add Button */}
           <button
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full md:w-auto"
             onClick={addTask}
@@ -220,9 +198,7 @@ const generateTaskFromPrompt = async () => {
                 task.completed ? "bg-green-100" : "bg-white"
               }`}
             >
-              {/* Task Info */}
               <div className="flex items-center gap-2 flex-1">
-                {/* Completion Checkbox */}
                 <input
                   type="checkbox"
                   checked={task.completed}
@@ -230,22 +206,75 @@ const generateTaskFromPrompt = async () => {
                   className="w-5 h-5 cursor-pointer"
                 />
 
-                {/* Task Text + Meta */}
-                <div>
-                  <p
-                    className={`${
-                      task.completed ? "line-through" : ""
-                    } text-black`}
-                  >
-                    {task.text}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Due: {task.dueDate} | Duration: {task.duration}
-                  </p>
+                {/* Inline Editable Fields */}
+                <div className="flex flex-col gap-1">
+                  {/* Text Field */}
+                  {editingField?.id === task.id && editingField.field === 'text' ? (
+                    <input
+                      type="text"
+                      value={task.text}
+                      onChange={(e) => updateTask(task.id, { text: e.target.value })}
+                      onBlur={() => setEditingField(null)}
+                      onKeyDown={(e) => handleKeyEvents(e, task, 'text')}
+                      autoFocus
+                      className="p-1 border rounded text-black"
+                    />
+                  ) : (
+                    <p
+                      onClick={() => setEditingField({ id: task.id, field: 'text', originalValue: task.text })}
+                      className="cursor-pointer"
+                    >
+                      {task.text}
+                    </p>
+                  )}
+
+                  {/* Due Date Field */}
+                  {editingField?.id === task.id && editingField.field === 'dueDate' ? (
+                    <input
+                      type="date"
+                      value={task.dueDate}
+                      onChange={(e) => updateTask(task.id, { dueDate: e.target.value })}
+                      onBlur={() => setEditingField(null)}
+                      onKeyDown={(e) => handleKeyEvents(e, task, 'dueDate')}
+                      autoFocus
+                      className="p-1 border rounded text-black"
+                    />
+                  ) : (
+                    <p
+                      onClick={() => setEditingField({ id: task.id, field: 'dueDate', originalValue: task.dueDate })}
+                      className="cursor-pointer text-sm text-gray-500"
+                    >
+                      Due: {task.dueDate}
+                    </p>
+                  )}
+
+                  {/* Duration Field */}
+                  {editingField?.id === task.id && editingField.field === 'duration' ? (
+                    <input
+                      type="text"
+                      value={task.duration}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (!value || isValidDuration(value)) {
+                          updateTask(task.id, { duration: value });
+                        }
+                      }}
+                      onBlur={() => setEditingField(null)}
+                      onKeyDown={(e) => handleKeyEvents(e, task, 'duration')}
+                      autoFocus
+                      className="p-1 border rounded text-black"
+                    />
+                  ) : (
+                    <p
+                      onClick={() => setEditingField({ id: task.id, field: 'duration', originalValue: task.duration })}
+                      className="cursor-pointer text-sm text-gray-500"
+                    >
+                      Duration: {task.duration}
+                    </p>
+                  )}
                 </div>
               </div>
 
-              {/* Delete Button */}
               <button
                 onClick={() => deleteTask(task.id)}
                 className="text-red-500 hover:text-red-700"
