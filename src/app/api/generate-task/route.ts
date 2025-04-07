@@ -2,34 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   const { prompt } = await req.json();
-  const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY;
 
-  const HF_MODEL = "google/flan-t5-base";
+  if (!prompt) {
+    return NextResponse.json({ error: 'Missing prompt' }, { status: 400 });
+  }
 
   try {
-    const response = await fetch(`https://api-inference.huggingface.co/models/${HF_MODEL}`, {
+    const response = await fetch('http://localhost:11434/api/generate', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${HUGGINGFACE_API_KEY}`,
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        inputs: prompt,
-      }),
+        model: 'mistral',
+        prompt: `Break down this task into 3–6 subtasks.\nRespond only with a bullet list, no extra text or explanation:\n\n"${prompt}"`,
+        stream: false
+      })
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      console.error('Hugging Face API error:', error);
-      return NextResponse.json({ error }, { status: response.status });
-    }
-
     const data = await response.json();
-    const result = data?.[0]?.generated_text || data?.[0] || "No result";
+    const result = data.response || 'No result';
 
     return NextResponse.json({ result });
   } catch (err) {
-    console.error('Request failed:', err);
+    console.error('Ollama API error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

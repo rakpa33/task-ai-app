@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AiSidebar from '../components/AiSidebar';
 
 ///////////////////////////////////////////////////////////
 // 🔹 Type Definitions
@@ -133,18 +134,22 @@ const generateTaskFromPrompt = async () => {
   ///////////////////////////////////////////////////////////
 
   return (
-    <div className="bg-white text-black min-h-screen w-full">
-      <main className="flex flex-col items-center p-4 w-full max-w-2xl mx-auto">
-        {/* 📝 Header */}
+    <div className="bg-white text-black min-h-screen w-full flex flex-col md:flex-row">
+      <AiSidebar
+        onAddTasks={(taskTexts) => {
+          const newTasks = taskTexts.map((text) => ({
+            id: Date.now() + Math.random(),
+            text,
+            dueDate: 'No date',
+            duration: 'No duration',
+            completed: false,
+          }));
+          setTasks((prev) => [...newTasks, ...prev]);
+        }}
+      />
+  
+      <main className="w-full md:w-2/3 p-4">
         <h1 className="text-3xl font-bold mb-4">📝 Task List</h1>
-
-        <button
-  className="mb-4 bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
-  onClick={generateTaskFromPrompt}
-  disabled={aiLoading}
->
-  {aiLoading ? 'Thinking...' : '🪄 Generate Task with AI'}
-</button>
 
         {/* 🧾 Task Input Form */}
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto_auto] w-full gap-2 mb-4">
