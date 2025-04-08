@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from "react";
 import { Task } from "../types/Task";
 import TaskItem from "./TaskItem";
+import { useState } from "react";
 
 interface TaskListProps {
   tasks: Task[];
@@ -15,8 +15,6 @@ interface TaskListProps {
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>, task: Task, field: keyof Task) => void;
   onChangeEditValue: (val: string) => void;
   getTaskTextById: (id: number) => string;
-  onToggleSubtask: (taskId: number, subtaskId: number) => void;
-  onAddSubtask: (taskId: number, subtaskText: string) => void;
   onOpenSidebar: (task: Task) => void;
 }
 
@@ -31,13 +29,25 @@ export default function TaskList({
   onKeyDown,
   onChangeEditValue,
   getTaskTextById,
-  onToggleSubtask,
-  onAddSubtask,
   onOpenSidebar
 }: TaskListProps) {
+  const [expandedTaskIds, setExpandedTaskIds] = useState<number[]>([]);
+
+  const toggleExpand = (id: number) => {
+    setExpandedTaskIds((prev) =>
+      prev.includes(id) ? prev.filter((tid) => tid !== id) : [...prev, id]
+    );
+  };
+
+  const sortedTasks = [...tasks].sort((a, b) => {
+    if (a.dependencies?.includes(b.id)) return 1;
+    if (b.dependencies?.includes(a.id)) return -1;
+    return 0;
+  });
+
   return (
     <ul className="w-full space-y-2">
-      {tasks.map((task) => (
+      {sortedTasks.map((task) => (
         <TaskItem
           key={task.id}
           task={task}
@@ -50,11 +60,9 @@ export default function TaskList({
           onKeyDown={(e, field) => onKeyDown(e, task, field)}
           onChangeEditValue={onChangeEditValue}
           getTaskTextById={getTaskTextById}
-          onToggleSubtask={onToggleSubtask}
-          onAddSubtask={onAddSubtask}
-          onOpenSidebar={onOpenSidebar}
-          expanded={false} // Add logic to manage expanded state if needed
-          onToggleExpand={() => {}} // Placeholder for now
+          onOpenSidebar={() => onOpenSidebar(task)}
+          expanded={expandedTaskIds.includes(task.id)}
+          onToggleExpand={() => toggleExpand(task.id)}
         />
       ))}
     </ul>

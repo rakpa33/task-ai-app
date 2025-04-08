@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import { Task } from "./types/Task";
@@ -133,18 +133,16 @@ export default function Home() {
           onKeyDown={handleKeyDown}
           onChangeEditValue={setEditingValue}
           getTaskTextById={getTaskTextById}
-          onToggleSubtask={toggleSubtask}
-          onAddSubtask={addSubtask}
           onOpenSidebar={(task) => setSelectedTask(task)}
         />
       </main>
 
       {selectedTask && (
         <TaskSidebar
-          task={selectedTask}
-          onClose={() => setSelectedTask(null)}
-          onUpdate={updateTask}
-        />
+        task={selectedTask}
+        onClose={() => setSelectedTask(null)}
+        onUpdate={updateTask}
+      />      
       )}
     </div>
   );

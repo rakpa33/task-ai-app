@@ -1,21 +1,16 @@
+import { Task } from "../types/Task";
+
 interface DependencyListProps {
-    dependencyIds: number[];
-    getTaskTextById: (id: number) => string;
-  }
-  
-  export default function DependencyList({
-    dependencyIds,
-    getTaskTextById,
-  }: DependencyListProps) {
-    return (
-      <div className="mt-2 ml-4 text-sm text-gray-600">
-        <p className="font-medium text-red-600">Depends on:</p>
-        <ul className="list-disc list-inside ml-2">
-          {dependencyIds.map((id) => (
-            <li key={id}>{getTaskTextById(id)}</li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
-  
+  dependencies: number[];
+  getTaskTextById: (id: number) => string;
+}
+
+export default function DependencyList({ dependencies, getTaskTextById }: DependencyListProps) {
+  if (dependencies.length === 0) return null;
+
+  return (
+    <div className="text-xs text-red-500 mt-1">
+      Blocked by: {dependencies.map(getTaskTextById).join(", ")}
+    </div>
+  );
+}

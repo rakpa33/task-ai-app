@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Task } from "../types/Task";
-import { useState } from "react";
+import DependencyList from "./DependencyList";
 
 interface TaskSidebarProps {
   task: Task;
@@ -10,57 +11,81 @@ interface TaskSidebarProps {
 }
 
 export default function TaskSidebar({ task, onClose, onUpdate }: TaskSidebarProps) {
-  const [localTask, setLocalTask] = useState(task);
+  const [text, setText] = useState(task.text);
+  const [dueDate, setDueDate] = useState(task.dueDate);
+  const [duration, setDuration] = useState(task.duration ?? "");
+  const [dependencies, setDependencies] = useState<number[]>(task.dependencies || []);
 
-  const handleChange = (field: keyof Task, value: string) => {
-    setLocalTask((prev) => ({ ...prev, [field]: value }));
-  };
+  useEffect(() => {
+    setText(task.text);
+    setDueDate(task.dueDate);
+    setDuration(task.duration ?? "");
+    setDependencies(task.dependencies || []);
+  }, [task]);
 
   const handleSave = () => {
-    onUpdate(localTask.id, localTask);
+    onUpdate(task.id, {
+      text,
+      dueDate,
+      duration: duration.trim() || null,
+      dependencies
+    });
     onClose();
   };
 
   return (
-    <aside className="absolute right-0 top-0 h-full w-full md:w-1/3 bg-white border-l p-4 shadow-xl transition-transform duration-300 ease-in-out">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Edit Task</h2>
-        <button onClick={onClose} className="text-red-500 hover:text-red-700 text-lg">✕</button>
+    <aside className="fixed right-0 top-0 h-full w-80 bg-white shadow-lg border-l p-4 overflow-y-auto transition-transform duration-300 z-20">
+      <h2 className="text-xl font-bold mb-4">Edit Task</h2>
+
+      <div className="mb-4">
+        <label className="block text-sm font-medium">Task Name</label>
+        <input
+          className="p-2 border rounded w-full"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
       </div>
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium">Description</label>
-          <input
-            type="text"
-            value={localTask.text}
-            onChange={(e) => handleChange("text", e.target.value)}
-            className="mt-1 block w-full border rounded p-2 text-black"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Due Date</label>
-          <input
-            type="date"
-            value={localTask.dueDate}
-            onChange={(e) => handleChange("dueDate", e.target.value)}
-            className="mt-1 block w-full border rounded p-2 text-black"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Duration</label>
-          <input
-            type="text"
-            value={localTask.duration || ""}
-            onChange={(e) => handleChange("duration", e.target.value)}
-            className="mt-1 block w-full border rounded p-2 text-black"
-            placeholder="e.g. 1h 30m"
-          />
-        </div>
+
+      <div className="mb-4">
+        <label className="block text-sm font-medium">Due Date</label>
+        <input
+          type="date"
+          className="p-2 border rounded w-full"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+        />
+      </div>
+
+      <div className="mb-4">
+        <label className="block text-sm font-medium">Duration</label>
+        <input
+          className="p-2 border rounded w-full"
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+        />
+      </div>
+
+      <div className="mb-4">
+        <label className="block text-sm font-medium">Dependencies</label>
+        {dependencies.length === 0 ? (
+          <p className="text-sm text-gray-500">No dependencies.</p>
+        ) : (
+          <DependencyList dependencies={dependencies} getTaskTextById={(id) => `#${id}`} />
+        )}
+      </div>
+
+      <div className="flex justify-between mt-6">
         <button
           onClick={handleSave}
-          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
           Save
+        </button>
+        <button
+          onClick={onClose}
+          className="text-gray-600 hover:text-black"
+        >
+          Cancel
         </button>
       </div>
     </aside>
