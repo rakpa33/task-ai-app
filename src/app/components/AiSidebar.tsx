@@ -1,9 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
-export default function AiSidebar({ onAddTasks }: { onAddTasks: (tasks: string[]) => void }) {
-  const [aiPrompt, setAiPrompt] = useState('');
+export default function AiSidebar({
+  onAddTasks,
+}: {
+  onAddTasks: (tasks: string[]) => void;
+}) {
+  const [aiPrompt, setAiPrompt] = useState("");
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [selectedSuggestions, setSelectedSuggestions] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
@@ -13,29 +17,25 @@ export default function AiSidebar({ onAddTasks }: { onAddTasks: (tasks: string[]
 
     setAiLoading(true);
     try {
-      const res = await fetch('/api/generate-task', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/generate-task", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: aiPrompt }),
       });
 
       const data = await res.json();
-      const raw = data.result || '';
+      const raw = data.result || "";
 
-      // Parse response into list of tasks
       const parsedTasks = raw
-        .split('\n')
+        .split("\n")
         .map((line: string) =>
-            line
-              .replace(/^(\d+[\).\s]+|[-•*]\s*)/, '')
-              .trim()
-              .replace(/^\w/, c => c.toUpperCase())
-          )
+          line.replace(/^(\d+[\).\s]+|[-•*]\s*)/, "").trim()
+        )
         .filter(Boolean);
-      setAiSuggestions(parsedTasks);
 
+      setAiSuggestions(parsedTasks);
     } catch (err) {
-      console.error('Failed to generate tasks:', err);
+      console.error("Failed to generate tasks:", err);
     } finally {
       setAiLoading(false);
     }
@@ -43,7 +43,7 @@ export default function AiSidebar({ onAddTasks }: { onAddTasks: (tasks: string[]
 
   const handleAddSelected = () => {
     onAddTasks(selectedSuggestions);
-    setAiPrompt('');
+    setAiPrompt("");
     setAiSuggestions([]);
     setSelectedSuggestions([]);
   };
@@ -59,7 +59,7 @@ export default function AiSidebar({ onAddTasks }: { onAddTasks: (tasks: string[]
         onChange={(e) => {
           const el = e.target as HTMLTextAreaElement;
           setAiPrompt(e.target.value);
-          el.style.height = 'auto';
+          el.style.height = "auto";
           el.style.height = `${el.scrollHeight}px`;
         }}
         rows={1}
@@ -70,7 +70,7 @@ export default function AiSidebar({ onAddTasks }: { onAddTasks: (tasks: string[]
         onClick={generateTaskSuggestions}
         disabled={aiLoading}
       >
-        {aiLoading ? 'Generating...' : '✨ Generate Tasks'}
+        {aiLoading ? "Generating..." : "✨ Generate Tasks"}
       </button>
 
       {aiSuggestions.length > 0 && (

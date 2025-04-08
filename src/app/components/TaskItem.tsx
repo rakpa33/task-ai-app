@@ -7,12 +7,9 @@ interface TaskItemProps {
   editingValue: string;
   onToggle: () => void;
   onDelete: () => void;
-  onStartEdit: (task: Task, field: keyof Task) => void;
+  onStartEdit: (field: keyof Task, value: string) => void;
   onBlur: (field: keyof Task) => void;
-  onKeyDown: (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    field: keyof Task
-  ) => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>, field: keyof Task) => void;
   onChangeEditValue: (val: string) => void;
   getTaskTextById: (id: number) => string;
   onToggleSubtask: (taskId: number, subtaskId: number) => void;
@@ -29,17 +26,13 @@ export default function TaskItem({
   onKeyDown,
   onChangeEditValue,
   getTaskTextById,
-  onToggleSubtask,
+  onToggleSubtask
 }: TaskItemProps) {
   const isEditingField = (field: keyof Task) =>
     editingField?.id === task.id && editingField.field === field;
 
   return (
-    <li
-      className={`p-4 border rounded ${
-        task.completed ? "bg-green-100" : "bg-white"
-      }`}
-    >
+    <li className={`p-4 border rounded ${task.completed ? "bg-green-100" : "bg-white"}`}>
       <div className="flex items-center gap-2">
         <input
           type="checkbox"
@@ -51,7 +44,7 @@ export default function TaskItem({
         <div className="flex flex-col gap-1">
           {/* 🔤 Text Field */}
           <p
-            onClick={() => onStartEdit(task, "text")}
+            onClick={() => onStartEdit("text", task.text)}
             className="cursor-pointer font-medium"
           >
             {isEditingField("text") ? (
@@ -73,7 +66,7 @@ export default function TaskItem({
           <p
             onClick={(e) => {
               e.stopPropagation();
-              onStartEdit(task, "duration");
+              onStartEdit("duration", task.duration || "");
             }}
             className="cursor-pointer text-sm text-gray-500"
           >
@@ -96,7 +89,7 @@ export default function TaskItem({
           <p
             onClick={(e) => {
               e.stopPropagation();
-              onStartEdit(task, "dueDate");
+              onStartEdit("dueDate", task.dueDate);
             }}
             className="cursor-pointer text-sm text-gray-500"
           >

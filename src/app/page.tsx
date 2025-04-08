@@ -62,10 +62,10 @@ export default function Home() {
     );
   };
 
-  const handleStartEdit = (id: number, field: keyof Task, value: string) => {
-    setEditingField({ id, field, originalValue: value });
+  const handleStartEdit = (task: Task, field: keyof Task, value: string) => {
+    setEditingField({ id: task.id, field, originalValue: value });
     setEditingValue(value);
-  };  
+  };
 
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -83,12 +83,17 @@ export default function Home() {
   const handleBlur = (task: Task, field: keyof Task) => {
     const trimmedValue = editingValue.trim();
   
-    // Revert to original if empty
     if (trimmedValue === "") {
       updateTask(task.id, { [field]: editingField?.originalValue || task[field] });
     } else if (field === "duration") {
       const formatted = formatDuration(trimmedValue);
-      updateTask(task.id, { duration: formatted });
+  
+      if (formatted === null) {
+        // ❌ invalid duration, don't update — just revert
+        updateTask(task.id, { [field]: editingField?.originalValue || task[field] });
+      } else {
+        updateTask(task.id, { duration: formatted });
+      }
     } else {
       updateTask(task.id, { [field]: trimmedValue });
     }

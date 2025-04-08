@@ -15,10 +15,12 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
 
   const handleSubmit = () => {
     const formatted = duration ? formatDuration(duration) : null;
+
     if (duration && formatted === null) {
       setDurationError("Duration must be at least 5 minutes and valid (e.g., 1h 30m)");
       return;
     }
+
     setDurationError("");
     onAddTask({ text: input, dueDate: dueDate || "No date", duration: formatted });
     setInput("");
@@ -43,7 +45,7 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
         onChange={(e) => setDueDate(e.target.value)}
       />
       <input
-        className={`p-2 border rounded w-full text-black ${
+        className={`p-2 border rounded text-black w-full ${
           durationError ? "border-red-500" : "border-gray-300"
         }`}
         type="text"
@@ -57,6 +59,9 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
       >
         Add
       </button>
+      {durationError && (
+        <p className="text-sm text-red-500 col-span-full mt-1">{durationError}</p>
+      )}
     </div>
   );
 }

@@ -7,10 +7,10 @@ interface TaskListProps {
   editingValue: string;
   onToggleTask: (id: number) => void;
   onDeleteTask: (id: number) => void;
-  onStartEdit: (task: Task, field: keyof Task) => void;
+  onStartEdit: (task: Task, field: keyof Task, value: string) => void;
   onBlur: (task: Task, field: keyof Task) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>, task: Task, field: keyof Task) => void;
-  onChangeEditValue: (val: string) => void; // ✅ THIS LINE IS LIKELY MISSING
+  onChangeEditValue: (val: string) => void;
   getTaskTextById: (id: number) => string;
   onToggleSubtask: (taskId: number, subtaskId: number) => void;
 }
@@ -24,28 +24,27 @@ export default function TaskList({
   onStartEdit,
   onBlur,
   onKeyDown,
-  onChangeEditValue, // ✅ Make sure this is here too
+  onChangeEditValue,
   getTaskTextById,
-  onToggleSubtask
+  onToggleSubtask,
 }: TaskListProps) {
-
   return (
     <ul className="w-full space-y-2">
       {tasks.map((task) => (
         <TaskItem
-        key={task.id}
-        task={task}
-        editingField={editingField}
-        editingValue={editingField?.id === task.id ? editingValue : ""}
-        onToggle={() => onToggleTask(task.id)}
-        onDelete={() => onDeleteTask(task.id)}
-        onStartEdit={(field) => onStartEdit(task, field)} // ✅ Now valid
-        onBlur={(field) => onBlur(task, field)}
-        onKeyDown={(e, field) => onKeyDown(e, task, field)}
-        onChangeEditValue={onChangeEditValue}
-        getTaskTextById={getTaskTextById}
-        onToggleSubtask={onToggleSubtask}
-      />            
+          key={task.id}
+          task={task}
+          editingField={editingField}
+          editingValue={editingField?.id === task.id ? editingValue : ""}
+          onToggle={() => onToggleTask(task.id)}
+          onDelete={() => onDeleteTask(task.id)}
+          onStartEdit={(field, value) => onStartEdit(task, field, value)}
+          onBlur={(field) => onBlur(task, field)}
+          onKeyDown={(e, field) => onKeyDown(e, task, field)}
+          onChangeEditValue={onChangeEditValue}
+          getTaskTextById={getTaskTextById}
+          onToggleSubtask={onToggleSubtask}
+        />
       ))}
     </ul>
   );
