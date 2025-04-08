@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from "react";
 import { Task } from "../types/Task";
 import TaskItem from "./TaskItem";
 
@@ -13,6 +16,8 @@ interface TaskListProps {
   onChangeEditValue: (val: string) => void;
   getTaskTextById: (id: number) => string;
   onToggleSubtask: (taskId: number, subtaskId: number) => void;
+  onAddSubtask: (taskId: number, subtaskText: string) => void;
+  onOpenSidebar: (task: Task) => void;
 }
 
 export default function TaskList({
@@ -27,6 +32,8 @@ export default function TaskList({
   onChangeEditValue,
   getTaskTextById,
   onToggleSubtask,
+  onAddSubtask,
+  onOpenSidebar
 }: TaskListProps) {
   return (
     <ul className="w-full space-y-2">
@@ -44,6 +51,10 @@ export default function TaskList({
           onChangeEditValue={onChangeEditValue}
           getTaskTextById={getTaskTextById}
           onToggleSubtask={onToggleSubtask}
+          onAddSubtask={onAddSubtask}
+          onOpenSidebar={onOpenSidebar}
+          expanded={false} // Add logic to manage expanded state if needed
+          onToggleExpand={() => {}} // Placeholder for now
         />
       ))}
     </ul>
